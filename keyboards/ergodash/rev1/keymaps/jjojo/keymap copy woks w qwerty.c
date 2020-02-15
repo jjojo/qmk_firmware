@@ -6,19 +6,16 @@
 #include "rgblight.h"
 #include "rgblight_list.h"
 
-#define TAPPING_TERM 175
-
 #define _QWERTY 0
 #define _LOWER 1
 #define _RAISE 2
 #define _ADJUST 16
 
-
 enum custom_keycodes {
   QWERTY = SAFE_RANGE,
   LOWER,
   RAISE,
-  ADJUST
+  ADJUST,
 };
 
 #define EISU LALT(KC_GRV)
@@ -40,7 +37,7 @@ enum custom_keycodes {
      * `-------------------------------'                                                      `-------------------------------'
      *                                       ,----------------.        ,--------------.
      *                                       |       |        |        |      |       |
-     *                               ,-------| bkSpc |  RCtrl |        | Entr | Space  +-------.
+     *                               ,-------| Space | LShift |        | Entr + Bksp  +-------.
      *                               | LOWER |       |        |        |      |       | RAISE |
      *                               `------------------------'        `----------------------'
      */
@@ -50,12 +47,12 @@ enum custom_keycodes {
     K21, K22, K23, K24, K25, K26, K27, K28, K29, K2A  \
   ) \
   LAYOUT_ergodash_pretty_wrapper( \
-    KC_ESC,  ________________NUMBER_LEFT________________, SE_DLR_MAC,          SE_EQL, ________________NUMBER_RIGHT_______________, SE_PLUS, \
-    KC_TAB,  K01,     K02,     K03,     K04,     K05,     SE_LESS_MAC,          LSFT(SE_GRV),  K06,    K07,    K08,    K09,    K0A,         SE_AA, \
-    KC_CAPS, K11,     K12,     K13,     K14,     K15,     SE_GRTR_MAC,          KC_BSLS, K16,    K17,    K18,    K19,    K1A,         SE_AE, \
+    KC_ESC,  ________________NUMBER_LEFT________________, KC_LBRC,          KC_RBRC, ________________NUMBER_RIGHT_______________, SE_PLUS, \
+    KC_GRV,  K01,     K02,     K03,     K04,     K05,     KC_MINS,          KC_EQL,  K06,    K07,    K08,    K09,    K0A,         SE_AA, \
+    KC_TAB,  K11,     K12,     K13,     K14,     K15,     SE_LBRC,          KC_BSLS, K16,    K17,    K18,    K19,    K1A,         SE_AE, \
     OS_LSFT, K21,     K22,     K23,     K24,     K25,                                K26,    K27,    K28,    K29,    K2A,         OS_RSFT, \
-    KC_LCTL, KC_LGUI, KC_LGUI, KC_LALT,                                                            KC_LEFT, KC_DOWN, KC_UP,       KC_RIGHT, \
-                                        TT(_LOWER), KC_BSPC,  KC_RCTL,          KC_ENT, KC_SPC, TT(_RAISE)                               \
+    KC_LCTL, KC_LGUI, KC_LALT, KC_LALT,                                                            KC_LEFT, KC_DOWN, KC_UP,       KC_RIGHT, \
+                                        TT(_LOWER), KC_SPC,  OS_LSFT,          KC_ENT, KC_BSPC, TT(_RAISE)                               \
   )
 
 #define LAYOUT_ergodash_pretty_base_wrapper(...)       LAYOUT_ergodash_pretty_base(__VA_ARGS__)
@@ -76,7 +73,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     _______, _________________LOWER_L3__________________,                           _________________LOWER_R3__________________, KC_PSCR,
     _______, _______, _______, _______,                                                               _______, _______, _______, KC_PAUS,
                                         _______, _______, _______,         _______, _______, _______
-  ),
+    ),
 
   [_RAISE] = LAYOUT_ergodash_pretty_wrapper(
     KC_F12,  _________________FUNC_LEFT_________________, KC_RST,          KC_RST , _________________FUNC_RIGHT________________, KC_F11,
@@ -85,64 +82,34 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     _______, _________________RAISE_L3__________________,                           _________________RAISE_R3__________________, KC_PSCR,
     _______, _______, _______, _______,                                                               KC_HOME, KC_PGDN, KC_PGUP, KC_END,
                                         _______, _______, _______,         _______, _______, _______
-  ),
+    ),
 
-  [_ADJUST] = LAYOUT_ergodash_pretty_wrapper(
-    KC_F12,  _________________FUNC_LEFT_________________, KC_RST,          KC_RST , _________________FUNC_RIGHT________________, KC_F11,
-    KC_GRV,  _________________ADJUST_L1_________________, _______,         _______, _________________ADJUST_R1_________________, KC_BSLS,
-    _______, _________________ADJUST_L2_________________, _______,         _______, _________________ADJUST_R2_________________, KC_QUOT,
-    _______, _________________ADJUST_L3_________________,                           _________________ADJUST_R3_________________, KC_PSCR,
-    _______, _______, _______, _______,                                                               KC_HOME, KC_PGDN, KC_PGUP, KC_END,
-                                    TO(_QWERTY), _______, _______,         _______, _______, TO(_QWERTY)
-  ),
+  /* Adjust
+   * ,----------------------------------------------------------------------------------------------------------------------.
+   * |      |      |      |      |      |      |      |                    |      |      |      |      |      |      |      |
+   * |------+------+------+------+------+------+---------------------------+------+------+------+------+------+------+------|
+   * |      | Reset|RGB ON|  MODE|  HUE-|  HUE+|      |                    |      |  SAT-|  SAT+|  VAL-|  VAL+|      |      |
+   * |------+------+------+------+------+------+---------------------------+------+------+------+------+------+------+------|
+   * |      |      | BL ON|  BRTG|  INC|   DEC|      |                    |      |      |      |      |      |      |      |
+   * |------+------+------+------+------+------+---------------------------+------+------+------+------+------+------+------|
+   * |      |      |      |      |      |      |      |                    |      |      |      |      |      |      |      |
+   * |-------------+------+------+------+------+------+------+------+------+------+------+------+------+------+-------------|
+   * |      |      |      |      ||||||||      |      |      ||||||||      |      |      ||||||||      |      |      |      |
+   * ,----------------------------------------------------------------------------------------------------------------------.
+   */
+  [_ADJUST] = LAYOUT(
+    _______, _______, _______, _______, _______, _______,_______,                       _______, _______, _______, _______, _______, _______, _______, \
+    _______, RESET  , RGB_TOG, RGB_MOD, RGB_HUD, RGB_HUI,_______,                       _______, RGB_SAD, RGB_SAI, RGB_VAD, RGB_VAI, _______, _______, \
+    _______, _______, BL_TOGG, BL_BRTG, BL_INC , BL_DEC ,_______,                       _______, _______, _______, _______, _______, _______, _______, \
+    _______, _______, _______, _______, _______, _______,_______,                       _______, _______, _______, _______, _______, _______, _______, \
+    _______, _______, _______, _______,          _______,_______,_______,       _______,_______, _______,          _______, _______, _______, _______  \
+  )
 };
 
 void persistent_default_layer_set(uint16_t default_layer) {
   eeconfig_update_default_layer(default_layer);
   default_layer_set(default_layer);
 };
-
-// bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-//   switch (keycode) {
-//     case _QWERTY:
-//       if (record->event.pressed) {
-//         set_single_persistent_default_layer(_QWERTY);
-//       }
-//       return false;
-//       break;
-//     case TT(_LOWER):
-//       if (record->event.pressed) {
-//         layer_on(_LOWER);
-//       } else {
-//         layer_off(_LOWER);
-//       }
-//       update_tri_layer(_LOWER, _RAISE, _ADJUST);
-//       return false;
-//       break;
-//     case TT(_RAISE):
-//       if (record->event.pressed) {
-//         layer_on(_RAISE);
-//       } else {
-//         layer_off(_RAISE);
-//       }
-//       update_tri_layer(_LOWER, _RAISE, _ADJUST);
-//       return false;
-//       break;
-//     case _ADJUST:
-//       if (record->event.pressed) {
-//         layer_on(_ADJUST);
-//       } else {
-//         layer_off(_ADJUST);
-//       }
-//       return false;
-//       break;
-//   }
-//   return true;
-// }
-
-void matrix_init_user(void) {
-  rgblight_sethsv(0, 0, 50);
-}
 
 
 void matrix_scan_user(void)
@@ -177,5 +144,3 @@ void matrix_scan_user(void)
         has_layer_changed = false;
     }
 };
-
-

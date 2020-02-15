@@ -1,1 +1,1 @@
-SRC += _example.c
+SRC += jjojo.c
