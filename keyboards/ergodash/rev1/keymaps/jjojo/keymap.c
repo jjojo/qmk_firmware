@@ -1,17 +1,27 @@
-#include QMK_KEYBOARD_H
+#include QMK_KEYBOARD_CONFIG_H
 #include "wrappers.h"
 #include "quantum.h"
 #include "process_records.h"
 #include "keymap_swedish.h"
 #include "rgblight.h"
-#include "rgblight_list.h"
-
-#define TAPPING_TERM 175
 
 #define _QWERTY 0
 #define _LOWER 1
 #define _RAISE 2
 #define _ADJUST 16
+
+//Tap Dance Declarations
+enum {
+  TD_ESC_CAPS = 0
+};
+
+//Tap Dance Definitions
+qk_tap_dance_action_t tap_dance_actions[] = {
+  //Tap once for Esc, twice for Caps Lock
+  [TD_ESC_CAPS]  = ACTION_TAP_DANCE_DOUBLE(KC_ESC, KC_CAPS)
+// Other declarations would go here, separated by commas, if you have them
+};
+
 
 
 enum custom_keycodes {
@@ -20,6 +30,8 @@ enum custom_keycodes {
   RAISE,
   ADJUST
 };
+
+
 
 #define EISU LALT(KC_GRV)
 
@@ -50,8 +62,8 @@ enum custom_keycodes {
     K21, K22, K23, K24, K25, K26, K27, K28, K29, K2A  \
   ) \
   LAYOUT_ergodash_pretty_wrapper( \
-    KC_ESC,  ________________NUMBER_LEFT________________, SE_DLR_MAC,          SE_EQL, ________________NUMBER_RIGHT_______________, SE_PLUS, \
-    KC_TAB,  K01,     K02,     K03,     K04,     K05,     SE_LESS_MAC,          LSFT(SE_GRV),  K06,    K07,    K08,    K09,    K0A,         SE_AA, \
+    TD(TD_ESC_CAPS),  ________________NUMBER_LEFT________________, SE_DLR_MAC,          SE_EQL, ________________NUMBER_RIGHT_______________, SE_PLUS, \
+    KC_TAB,  TD(TD_ESC_CAPS),     K02,     K03,     K04,     K05,     SE_LESS_MAC,          LSFT(SE_GRV),  K06,    K07,    K08,    K09,    K0A,         SE_AA, \
     KC_CAPS, K11,     K12,     K13,     K14,     K15,     SE_GRTR_MAC,          KC_BSLS, K16,    K17,    K18,    K19,    K1A,         SE_AE, \
     OS_LSFT, K21,     K22,     K23,     K24,     K25,                                K26,    K27,    K28,    K29,    K2A,         OS_RSFT, \
     KC_LCTL, KC_LGUI, KC_LGUI, KC_LALT,                                                            KC_LEFT, KC_DOWN, KC_UP,       KC_RIGHT, \
@@ -102,80 +114,44 @@ void persistent_default_layer_set(uint16_t default_layer) {
   default_layer_set(default_layer);
 };
 
-// bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-//   switch (keycode) {
-//     case _QWERTY:
-//       if (record->event.pressed) {
-//         set_single_persistent_default_layer(_QWERTY);
-//       }
-//       return false;
-//       break;
-//     case TT(_LOWER):
-//       if (record->event.pressed) {
-//         layer_on(_LOWER);
-//       } else {
-//         layer_off(_LOWER);
-//       }
-//       update_tri_layer(_LOWER, _RAISE, _ADJUST);
-//       return false;
-//       break;
-//     case TT(_RAISE):
-//       if (record->event.pressed) {
-//         layer_on(_RAISE);
-//       } else {
-//         layer_off(_RAISE);
-//       }
-//       update_tri_layer(_LOWER, _RAISE, _ADJUST);
-//       return false;
-//       break;
-//     case _ADJUST:
-//       if (record->event.pressed) {
-//         layer_on(_ADJUST);
-//       } else {
-//         layer_off(_ADJUST);
-//       }
-//       return false;
-//       break;
-//   }
-//   return true;
-// }
+
 
 void matrix_init_user(void) {
   rgblight_sethsv(0, 0, 50);
 }
 
 
-void matrix_scan_user(void)
-{  // runs frequently to update info
-    uint8_t layer = biton32(layer_state); // get current layer
-    static uint8_t current_layer; // check historic layer
-    static bool has_layer_changed = true;
-    // static, so it is kept the same between calls
-    // defaults to true, so that it runs once to initially set the light
+// void matrix_scan_user(void)
+// {  // runs frequently to update info
+//     uint8_t layer = biton32(layer_state); // get current layer
+//     static uint8_t current_layer; // check historic layer
+//     static bool has_layer_changed = true;
+//     // static, so it is kept the same between calls
+//     // defaults to true, so that it runs once to initially set the light
 
-    if (layer != current_layer) {
-        has_layer_changed = true;
-        current_layer = layer; // update layer information
-    }
-    // Check for layer change, and apply color if its changed since last check
-    if (has_layer_changed){
-        // change rgb light based on layer.
-        switch (layer){
-            case _LOWER:
-                rgblight_sethsv(HSV_BLUE);
-                break;
-            case _RAISE:
-                rgblight_sethsv(HSV_GREEN);
-                break;
-            case _ADJUST:
-                rgblight_sethsv(HSV_RED);
-                break;
-            default:
-                rgblight_sethsv(HSV_WHITE);
-                break;
-        }
-        has_layer_changed = false;
-    }
-};
+//     if (layer != current_layer) {
+//         has_layer_changed = true;
+//         current_layer = layer; // update layer information
+//     }
+//     // Check for layer change, and apply color if its changed since last check
+//     if (has_layer_changed){
+//         // change rgb light based on layer.
+//         switch (layer){
+//             case _LOWER:
+//                 rgblight_sethsv(HSV_BLUE);
+//                 break;
+//             case _RAISE:
+//                 rgblight_sethsv(HSV_GREEN);
+//                 break;
+//             case _ADJUST:
+//                 rgblight_sethsv(HSV_RED);
+//                 break;
+//             default:
+//                 rgblight_sethsv(HSV_WHITE);
+//                 break;
+//         }
+//         has_layer_changed = false;
+//     }
+// };
 
 
